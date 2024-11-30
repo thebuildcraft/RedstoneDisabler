@@ -1,0 +1,6 @@
+name: RedstoneDisabler
+version: '1.0-SNAPSHOT'
+main: de.the_build_craft.redstoneDisabler.RedstoneDisabler
+api-version: '1.21'
+authors:
+  - the_build_craft
