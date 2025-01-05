@@ -16,6 +16,7 @@ import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Timer;
 
 public final class RedstoneDisabler extends JavaPlugin implements Listener {
@@ -32,6 +33,7 @@ public final class RedstoneDisabler extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         registerCommand(new RegisterLeverCommand());
         registerCommand(new UnRegisterLeverCommand());
+        registerCommand(new TurnOffCommand());
         saveDefaultConfig();
 
         stopCommand = getServer().getCommandMap().getCommand("stop");
@@ -56,31 +58,37 @@ public final class RedstoneDisabler extends JavaPlugin implements Listener {
         handleCommand(e);
     }
 
+    public static List<String> getLeverList() {
+        return instance.getConfig().getStringList(LEVERS);
+    }
+
     public void handleCommand(Cancellable c) {
         if (c.isCancelled()) return;
         if (!allowStop) {
             c.setCancelled(true);
 
-            for (var locationStr : getConfig().getStringList(LEVERS)) {
-                Location location = stringToLocation(locationStr);
-                if (location.getBlock().getType() == Material.LEVER) {
-                    BlockState state = location.getBlock().getState();
-                    Switch lever = (Switch) state.getBlockData();
-
-                    location.getBlock().breakNaturally();
-
-                    var items = location.getNearbyEntitiesByType(Item.class, 1);
-                    for (var item : items) {
-                        if (item.getItemStack().getType() == Material.LEVER) item.remove();
-                    }
-
-                    lever.setPowered(false);
-                    state.setBlockData(lever);
-                    state.update(true, true);
-                }
+            for (String locationStr : getLeverList()) {
+                turnOffLever(stringToLocation(locationStr));
             }
             startTimer();
         }
+    }
+
+    public static void turnOffLever(Location location) {
+        if (location.getBlock().getType() != Material.LEVER) return;
+        BlockState state = location.getBlock().getState();
+        Switch lever = (Switch) state.getBlockData();
+
+        location.getBlock().breakNaturally();
+
+        var items = location.getNearbyEntitiesByType(Item.class, 1);
+        for (var item : items) {
+            if (item.getItemStack().getType() == Material.LEVER) item.remove();
+        }
+
+        lever.setPowered(false);
+        state.setBlockData(lever);
+        state.update(true, true);
     }
 
     public void startTimer() {
