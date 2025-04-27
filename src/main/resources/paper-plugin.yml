@@ -4,3 +4,4 @@ main: de.the_build_craft.redstoneDisabler.RedstoneDisabler
 api-version: '1.21'
 authors:
   - the_build_craft
+folia-supported: true
